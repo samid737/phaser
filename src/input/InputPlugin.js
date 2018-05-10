@@ -481,26 +481,40 @@ var InputPlugin = new Class({
     hitTestPointer: function (pointer)
     {
         var camera = this.cameras.getCameraBelowPointer(pointer);
-
+    
         if (camera)
         {
-            pointer.camera = camera;
-
-            //  Get a list of all objects that can be seen by the camera below the pointer in the scene and store in 'output' array.
-            //  All objects in this array are input enabled, as checked by the hitTest method, so we don't need to check later on as well.
-            var over = this.manager.hitTest(pointer.x, pointer.y, this._list, camera);
-
-            //  Filter out the drop zones
-            for (var i = 0; i < over.length; i++)
+            var over = [];
+            
+            // Do A hitTest for each camera
+            for (var i = this.cameras.cameras.length - 1; i >= 0; i--)
             {
-                var obj = over[i];
+                var c = this.cameras.cameras[i];
+                pointer.camera = c;
 
-                if (obj.input.dropZone)
+                //  Get a list of all objects that can be seen by the camera below the pointer in the scene and store in 'output' array.
+                //  All objects in this array are input enabled, as checked by the hitTest method, so we don't need to check later on as well.
+                over = this.manager.hitTest(pointer.x, pointer.y, this._list, c);
+
+                if(over.length > 0)
                 {
-                    this._tempZones.push(obj);
-                }
-            }
 
+                    //  Filter out the drop zones
+                    for (var s = 0; s < over.length; s++)
+                    {
+                        var obj = over[s];
+
+                        if (obj.input.dropZone)
+                        {
+                            this._tempZones.push(obj);
+                        }
+                    }
+
+                    return over;
+                }
+                
+            }
+            
             return over;
         }
         else
